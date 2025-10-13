@@ -162,12 +162,101 @@ select * from products where image like '%bigs%';
 --------------------------------------------------------------------------------------
 SET @pageNumber := 2;
 SET @pageSize := 6;
-SET @offset := (@pageNumber - 1) * @pageSize;
+SET @myoffset := (@pageNumber - 1) * @pageSize;
 
-SELECT *
-FROM products
-ORDER BY product_id DESC
-LIMIT @pageSize OFFSET @offset;
+-- SELECT *
+-- FROM products
+-- ORDER BY product_id DESC
+-- LIMIT (@pageSize) OFFSET (@myoffset);
+
+---------------
+
+-- 이 코드는 MySQL에서 사용하는 UPDATE + WITH(공통 테이블 식, CTE) 구문으로,
+-- products 테이블에 있는 행들의 inputdate 값을 
+-- 행 번호 순서대로 1일 전, 2일 전, 3일 전… 식으로 날짜를 변경하는 SQL 문입니다.
+-- 임의의 날짜로 모두 초기화합니다.
+UPDATE products SET inputdate = '2025-01-01';
+
+WITH Ranked AS (
+    select product_id, inputdate, ROW_NUMBER() OVER (ORDER BY product_id) AS rn
+    from products
+)
+UPDATE products p
+JOIN Ranked r ON p.product_id = r.product_id
+SET p.inputdate = CURDATE() - INTERVAL r.rn DAY;
+
+commit ;
+
+desc products;
+-- 필드 검색
+select * from products order by product_id desc ;
+
+-- 1주일 전까지 검색
+select * 
+from products
+WHERE inputdate >= NOW() - INTERVAL 1 WEEK
+ORDER BY product_id DESC;
+
+select count(*) 
+from products
+WHERE inputdate >= NOW() - INTERVAL 1 WEEK
+ORDER BY product_id DESC;
+
+-- 1개월 전까지 검색
+select * 
+from products
+WHERE inputdate >= NOW() - INTERVAL 1 MONTH
+ORDER BY product_id DESC;
+
+select count(*) 
+from products
+WHERE inputdate >= NOW() - INTERVAL 1 MONTH
+ORDER BY product_id DESC;
 
 
+-- 카테고리 검색
+-- 카테고리가 ~~인 것만 검색
+SET @category = 'beverage';
+
+select * 
+from products
+WHERE category = upper(@category)
+ORDER BY product_id DESC;
+
+select count(*) 
+from products
+WHERE category = upper(@category)
+ORDER BY product_id DESC; 
+
+-- 카테고리가 ~~이고, 상품 이름이 ~~를 포함하는 데이터 검색
+SET @category = 'cake';
+SET @myname = '%바닐라%' ;
+
+select * 
+from products
+WHERE name LIKE @myname
+AND category = upper(@category)
+ORDER BY product_id DESC;
+
+select count(*) 
+from products
+WHERE name LIKE @myname
+AND category = upper(@category)
+ORDER BY product_id DESC;
+
+-- 카테고리가 ~~이고, 상품 설명이 ~~를 포함하는 데이터 검색
+SET @category = 'cake';
+SET @mydescription = '%새콤%' ;
+
+select * 
+from products
+WHERE description LIKE @mydescription
+AND category = upper(@category)
+ORDER BY product_id DESC;
+
+select count(*) 
+from products
+WHERE description LIKE @mydescription
+AND category = upper(@category)
+ORDER BY product_id DESC;
 
