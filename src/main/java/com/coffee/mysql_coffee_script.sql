@@ -40,6 +40,7 @@ desc members ;
 select * from members ; 
 
 delete from members ;
+delete from members where member_id >= 50 ;
 commit ;
 
 -- 가입한 회원 중에서 '관리자'의 Role을 'ADMIN'으로 변경
