@@ -47,6 +47,11 @@ commit ;
 update members set role = 'ADMIN' where email = 'admin@naver.com';
 commit ;
 
+delete from cart_products ;
+delete from carts ;
+delete from order_products ;
+delete from orders ;
+
 -----------------------------------------------------------------
 -- 상품 세션
 ----------------------------------------------------------------- 
